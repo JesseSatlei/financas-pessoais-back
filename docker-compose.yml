@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: financas-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: financas
+      POSTGRES_USER: financas
+      POSTGRES_PASSWORD: financas
+    ports:
+      - "5433:5432"
+    volumes:
+      - financas_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financas -d financas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  financas_postgres_data:
