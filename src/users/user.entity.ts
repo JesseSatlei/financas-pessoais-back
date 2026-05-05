@@ -11,6 +11,8 @@ import { CategoryEntity } from '../categories/category.entity';
 import { EntryEntity } from '../entries/entry.entity';
 import { SubscriptionEntity } from '../subscription/subscription.entity';
 
+export type UserRole = 'user' | 'admin';
+
 @Entity('users')
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -24,6 +26,12 @@ export class UserEntity {
 
   @Column({ name: 'password_hash' })
   passwordHash: string;
+
+  @Column({ default: false })
+  approved: boolean;
+
+  @Column({ type: 'varchar', length: 16, default: 'user' })
+  role: UserRole;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -47,6 +48,8 @@ export class AuthService {
       name: cleanName,
       email: cleanEmail,
       passwordHash: await bcrypt.hash(password, 10),
+      approved: false,
+      role: 'user',
     });
 
     const saved = await this.users.save(user);
@@ -60,6 +63,9 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Usuario nao encontrado');
     if (!(await bcrypt.compare(password, user.passwordHash))) {
       throw new UnauthorizedException('Senha incorreta');
+    }
+    if (!user.approved && user.role !== 'admin') {
+      throw new ForbiddenException('Conta aguardando aprovacao');
     }
 
     const safe = this.toPublicUser(user);
@@ -76,6 +82,9 @@ export class AuthService {
 
     const user = await this.users.findOne({ where: { id: payload.sub } });
     if (!user) throw new UnauthorizedException('Usuario nao encontrado');
+    if (!user.approved && user.role !== 'admin') {
+      throw new ForbiddenException('Conta aguardando aprovacao');
+    }
     return this.toPublicUser(user);
   }
 
@@ -92,6 +101,8 @@ export class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
+      approved: user.approved,
+      role: user.role,
       createdAt: user.createdAt.getTime(),
     };
   }

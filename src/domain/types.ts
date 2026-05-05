@@ -4,6 +4,8 @@ export interface PublicUser {
   id: string;
   name: string;
   email: string;
+  approved: boolean;
+  role: 'user' | 'admin';
   createdAt: number;
 }
 
