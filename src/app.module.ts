@@ -1,12 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import type { SignOptions } from 'jsonwebtoken';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthController } from './auth/auth.controller';
-import { AuthService } from './auth/auth.service';
 import { CategoryEntity } from './categories/category.entity';
 import { CategoriesController } from './categories/categories.controller';
 import { CategoriesService } from './categories/categories.service';
@@ -18,11 +14,13 @@ import { SubscriptionController } from './subscription/subscription.controller';
 import { SubscriptionService } from './subscription/subscription.service';
 import { UserEntity } from './users/user.entity';
 import { AdminModule } from './admin/admin.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     AdminModule,
+    AuthModule,
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -64,29 +62,15 @@ import { AdminModule } from './admin/admin.module';
       EntryEntity,
       SubscriptionEntity,
     ]),
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService): JwtModuleOptions => ({
-        secret: config.get<string>('JWT_SECRET', 'dev-secret-change-me'),
-        signOptions: {
-          expiresIn: config.get<string>(
-            'JWT_EXPIRES_IN',
-            '7d',
-          ) as SignOptions['expiresIn'],
-        },
-      }),
-    }),
   ],
   controllers: [
     AppController,
-    AuthController,
     CategoriesController,
     EntriesController,
     SubscriptionController,
   ],
   providers: [
     AppService,
-    AuthService,
     CategoriesService,
     EntriesService,
     SubscriptionService,
