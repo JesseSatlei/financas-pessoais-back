@@ -23,16 +23,38 @@ import { UserEntity } from './users/user.entity';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get<string>('DB_HOST', 'localhost'),
-        port: Number(config.get<string>('DB_PORT', '5433')),
-        username: config.get<string>('DB_USERNAME', 'financas'),
-        password: config.get<string>('DB_PASSWORD', 'financas'),
-        database: config.get<string>('DB_DATABASE', 'financas'),
-        entities: [UserEntity, CategoryEntity, EntryEntity, SubscriptionEntity],
-        synchronize: config.get<string>('DB_SYNCHRONIZE', 'true') === 'true',
-      }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>('DATABASE_URL');
+        const synchronize = config.get<string>('DB_SYNCHRONIZE', 'true') === 'true';
+
+        const sslEnabled =
+          !!databaseUrl || config.get<string>('DB_SSL', 'false') === 'true';
+        const ssl = sslEnabled ? { rejectUnauthorized: false } : undefined;
+
+        const entities = [UserEntity, CategoryEntity, EntryEntity, SubscriptionEntity];
+
+        if (databaseUrl) {
+          return {
+            type: 'postgres',
+            url: databaseUrl,
+            ssl,
+            entities,
+            synchronize,
+          };
+        }
+
+        return {
+          type: 'postgres',
+          host: config.get<string>('DB_HOST', 'localhost'),
+          port: Number(config.get<string>('DB_PORT', '5433')),
+          username: config.get<string>('DB_USERNAME', 'financas'),
+          password: config.get<string>('DB_PASSWORD', 'financas'),
+          database: config.get<string>('DB_DATABASE', 'financas'),
+          ssl,
+          entities,
+          synchronize,
+        };
+      },
     }),
     TypeOrmModule.forFeature([
       UserEntity,
