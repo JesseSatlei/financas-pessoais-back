@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
@@ -28,6 +29,15 @@ export class EntriesController {
     @Body() body: Omit<Entry, 'id' | 'createdAt'>,
   ) {
     return this.entries.add(user.id, body);
+  }
+
+  @Put(':id')
+  update(
+    @CurrentUser() user: PublicUser,
+    @Param('id') id: string,
+    @Body() body: Omit<Entry, 'id' | 'createdAt'>,
+  ) {
+    return this.entries.update(user.id, id, body);
   }
 
   @Post('seed-if-empty')

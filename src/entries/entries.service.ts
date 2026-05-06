@@ -10,6 +10,7 @@ import type { Entry } from '../domain/types';
 import { EntryEntity } from './entry.entity';
 
 type CreateEntry = Omit<Entry, 'id' | 'createdAt'>;
+type UpdateEntry = CreateEntry;
 
 @Injectable()
 export class EntriesService {
@@ -31,12 +32,32 @@ export class EntriesService {
     const entry = this.entries.create({
       userId,
       type: input.type,
+      investmentAction:
+        input.type === 'investment' ? input.investmentAction ?? 'deposit' : undefined,
       amount: Number(input.amount).toFixed(2),
       category: input.category.trim(),
       description: input.description?.trim() || undefined,
       date: input.date,
       account: input.account?.trim() || undefined,
     });
+
+    const saved = await this.entries.save(entry);
+    return this.toPublicEntry(saved);
+  }
+
+  async update(userId: string, id: string, input: UpdateEntry): Promise<Entry> {
+    this.validate(input);
+    const entry = await this.entries.findOne({ where: { userId, id } });
+    if (!entry) throw new NotFoundException('Lancamento nao encontrado');
+
+    entry.type = input.type;
+    entry.investmentAction =
+      input.type === 'investment' ? input.investmentAction ?? 'deposit' : undefined;
+    entry.amount = Number(input.amount).toFixed(2);
+    entry.category = input.category.trim();
+    entry.description = input.description?.trim() || undefined;
+    entry.date = input.date;
+    entry.account = input.account?.trim() || undefined;
 
     const saved = await this.entries.save(entry);
     return this.toPublicEntry(saved);
@@ -56,6 +77,8 @@ export class EntriesService {
         this.entries.create({
           userId,
           type: entry.type,
+          investmentAction:
+            entry.type === 'investment' ? entry.investmentAction ?? 'deposit' : undefined,
           amount: Number(entry.amount).toFixed(2),
           category: entry.category,
           description: entry.description,
@@ -73,6 +96,13 @@ export class EntriesService {
     if (!ENTRY_TYPES.includes(input.type)) {
       throw new BadRequestException('Tipo invalido');
     }
+    if (
+      input.type === 'investment' &&
+      input.investmentAction &&
+      !['deposit', 'withdrawal'].includes(input.investmentAction)
+    ) {
+      throw new BadRequestException('Operacao de investimento invalida');
+    }
     if (!Number.isFinite(Number(input.amount)) || Number(input.amount) <= 0) {
       throw new BadRequestException('Valor invalido');
     }
@@ -87,6 +117,10 @@ export class EntriesService {
     return {
       id: entry.id,
       type: entry.type,
+      investmentAction:
+        entry.type === 'investment'
+          ? entry.investmentAction ?? 'deposit'
+          : undefined,
       amount: Number(entry.amount),
       category: entry.category,
       description: entry.description,

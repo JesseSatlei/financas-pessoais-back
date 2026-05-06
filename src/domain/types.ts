@@ -1,4 +1,5 @@
 export type EntryType = 'expense' | 'income' | 'investment';
+export type InvestmentAction = 'deposit' | 'withdrawal';
 
 export interface PublicUser {
   id: string;
@@ -17,6 +18,7 @@ export interface AuthSession {
 export interface Entry {
   id: string;
   type: EntryType;
+  investmentAction?: InvestmentAction;
   amount: number;
   category: string;
   description?: string;

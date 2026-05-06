@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import type { EntryType } from '../domain/types';
+import type { InvestmentAction } from '../domain/types';
 import { UserEntity } from '../users/user.entity';
 
 @Entity('entries')
@@ -26,6 +27,9 @@ export class EntryEntity {
 
   @Column({ type: 'varchar', length: 20 })
   type: EntryType;
+
+  @Column({ name: 'investment_action', type: 'varchar', length: 20, nullable: true })
+  investmentAction?: InvestmentAction;
 
   @Column({ type: 'decimal', precision: 14, scale: 2 })
   amount: string;
