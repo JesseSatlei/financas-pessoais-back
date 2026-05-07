@@ -6,9 +6,15 @@ import { AppService } from './app.service';
 import { CategoryEntity } from './categories/category.entity';
 import { CategoriesController } from './categories/categories.controller';
 import { CategoriesService } from './categories/categories.service';
+import { DebtEntity } from './debts/debt.entity';
+import { DebtsController } from './debts/debts.controller';
+import { DebtsService } from './debts/debts.service';
 import { EntryEntity } from './entries/entry.entity';
 import { EntriesController } from './entries/entries.controller';
 import { EntriesService } from './entries/entries.service';
+import { RecurringBillEntity } from './recurring-bills/recurring-bill.entity';
+import { RecurringBillsController } from './recurring-bills/recurring-bills.controller';
+import { RecurringBillsService } from './recurring-bills/recurring-bills.service';
 import { SubscriptionEntity } from './subscription/subscription.entity';
 import { SubscriptionController } from './subscription/subscription.controller';
 import { SubscriptionService } from './subscription/subscription.service';
@@ -25,13 +31,21 @@ import { AuthModule } from './auth/auth.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const databaseUrl = config.get<string>('DATABASE_URL');
-        const synchronize = config.get<string>('DB_SYNCHRONIZE', 'true') === 'true';
+        const synchronize =
+          config.get<string>('DB_SYNCHRONIZE', 'true') === 'true';
 
         const sslEnabled =
           !!databaseUrl || config.get<string>('DB_SSL', 'false') === 'true';
         const ssl = sslEnabled ? { rejectUnauthorized: false } : undefined;
 
-        const entities = [UserEntity, CategoryEntity, EntryEntity, SubscriptionEntity];
+        const entities = [
+          UserEntity,
+          CategoryEntity,
+          EntryEntity,
+          DebtEntity,
+          RecurringBillEntity,
+          SubscriptionEntity,
+        ];
 
         if (databaseUrl) {
           return {
@@ -60,6 +74,8 @@ import { AuthModule } from './auth/auth.module';
       UserEntity,
       CategoryEntity,
       EntryEntity,
+      DebtEntity,
+      RecurringBillEntity,
       SubscriptionEntity,
     ]),
   ],
@@ -67,12 +83,16 @@ import { AuthModule } from './auth/auth.module';
     AppController,
     CategoriesController,
     EntriesController,
+    DebtsController,
+    RecurringBillsController,
     SubscriptionController,
   ],
   providers: [
     AppService,
     CategoriesService,
     EntriesService,
+    DebtsService,
+    RecurringBillsService,
     SubscriptionService,
   ],
 })

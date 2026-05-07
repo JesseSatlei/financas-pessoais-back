@@ -8,7 +8,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { CategoryEntity } from '../categories/category.entity';
+import { DebtEntity } from '../debts/debt.entity';
 import { EntryEntity } from '../entries/entry.entity';
+import { RecurringBillEntity } from '../recurring-bills/recurring-bill.entity';
 import { SubscriptionEntity } from '../subscription/subscription.entity';
 
 export type UserRole = 'user' | 'admin';
@@ -44,6 +46,12 @@ export class UserEntity {
 
   @OneToMany(() => EntryEntity, (entry) => entry.user)
   entries: EntryEntity[];
+
+  @OneToMany(() => DebtEntity, (debt) => debt.user)
+  debts: DebtEntity[];
+
+  @OneToMany(() => RecurringBillEntity, (bill) => bill.user)
+  recurringBills: RecurringBillEntity[];
 
   @OneToOne(() => SubscriptionEntity, (subscription) => subscription.user)
   subscription?: SubscriptionEntity;

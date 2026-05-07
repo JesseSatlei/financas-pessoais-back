@@ -33,12 +33,21 @@ export class EntriesService {
       userId,
       type: input.type,
       investmentAction:
-        input.type === 'investment' ? input.investmentAction ?? 'deposit' : undefined,
+        input.type === 'investment'
+          ? (input.investmentAction ?? 'deposit')
+          : undefined,
       amount: Number(input.amount).toFixed(2),
       category: input.category.trim(),
       description: input.description?.trim() || undefined,
       date: input.date,
       account: input.account?.trim() || undefined,
+      splitWith: input.splitWith?.trim() || undefined,
+      splitAmount: input.splitAmount
+        ? Number(input.splitAmount).toFixed(2)
+        : undefined,
+      splitStatus: input.splitWith?.trim()
+        ? (input.splitStatus ?? 'pending')
+        : undefined,
     });
 
     const saved = await this.entries.save(entry);
@@ -52,12 +61,21 @@ export class EntriesService {
 
     entry.type = input.type;
     entry.investmentAction =
-      input.type === 'investment' ? input.investmentAction ?? 'deposit' : undefined;
+      input.type === 'investment'
+        ? (input.investmentAction ?? 'deposit')
+        : undefined;
     entry.amount = Number(input.amount).toFixed(2);
     entry.category = input.category.trim();
     entry.description = input.description?.trim() || undefined;
     entry.date = input.date;
     entry.account = input.account?.trim() || undefined;
+    entry.splitWith = input.splitWith?.trim() || undefined;
+    entry.splitAmount = input.splitAmount
+      ? Number(input.splitAmount).toFixed(2)
+      : undefined;
+    entry.splitStatus = input.splitWith?.trim()
+      ? (input.splitStatus ?? 'pending')
+      : undefined;
 
     const saved = await this.entries.save(entry);
     return this.toPublicEntry(saved);
@@ -78,12 +96,19 @@ export class EntriesService {
           userId,
           type: entry.type,
           investmentAction:
-            entry.type === 'investment' ? entry.investmentAction ?? 'deposit' : undefined,
+            entry.type === 'investment'
+              ? (entry.investmentAction ?? 'deposit')
+              : undefined,
           amount: Number(entry.amount).toFixed(2),
           category: entry.category,
           description: entry.description,
           date: entry.date,
           account: entry.account,
+          splitWith: entry.splitWith,
+          splitAmount: entry.splitAmount
+            ? Number(entry.splitAmount).toFixed(2)
+            : undefined,
+          splitStatus: entry.splitStatus,
           createdAt: new Date(entry.createdAt || Date.now()),
         }),
       );
@@ -111,6 +136,21 @@ export class EntriesService {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
       throw new BadRequestException('Data invalida');
     }
+    if (input.splitWith?.trim()) {
+      if (
+        !Number.isFinite(Number(input.splitAmount)) ||
+        Number(input.splitAmount) <= 0 ||
+        Number(input.splitAmount) > Number(input.amount)
+      ) {
+        throw new BadRequestException('Valor da divisao invalido');
+      }
+      if (
+        input.splitStatus &&
+        !['pending', 'paid'].includes(input.splitStatus)
+      ) {
+        throw new BadRequestException('Status da divisao invalido');
+      }
+    }
   }
 
   private toPublicEntry(entry: EntryEntity): Entry {
@@ -119,13 +159,16 @@ export class EntriesService {
       type: entry.type,
       investmentAction:
         entry.type === 'investment'
-          ? entry.investmentAction ?? 'deposit'
+          ? (entry.investmentAction ?? 'deposit')
           : undefined,
       amount: Number(entry.amount),
       category: entry.category,
       description: entry.description,
       date: entry.date,
       account: entry.account,
+      splitWith: entry.splitWith,
+      splitAmount: entry.splitAmount ? Number(entry.splitAmount) : undefined,
+      splitStatus: entry.splitStatus,
       createdAt: entry.createdAt.getTime(),
     };
   }

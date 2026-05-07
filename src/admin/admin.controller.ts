@@ -18,4 +18,3 @@ export class AdminController {
     return this.admin.setApproval(id, Boolean(body.approved));
   }
 }
-

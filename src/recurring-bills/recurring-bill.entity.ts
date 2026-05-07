@@ -7,12 +7,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { EntryType, SplitStatus } from '../domain/types';
-import type { InvestmentAction } from '../domain/types';
 import { UserEntity } from '../users/user.entity';
 
-@Entity('entries')
-export class EntryEntity {
+@Entity('recurring_bills')
+export class RecurringBillEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -20,21 +18,13 @@ export class EntryEntity {
   @Index()
   userId: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.entries, {
+  @ManyToOne(() => UserEntity, (user) => user.recurringBills, {
     onDelete: 'CASCADE',
   })
   user: UserEntity;
 
-  @Column({ type: 'varchar', length: 20 })
-  type: EntryType;
-
-  @Column({
-    name: 'investment_action',
-    type: 'varchar',
-    length: 20,
-    nullable: true,
-  })
-  investmentAction?: InvestmentAction;
+  @Column({ length: 120 })
+  title: string;
 
   @Column({ type: 'decimal', precision: 14, scale: 2 })
   amount: string;
@@ -42,14 +32,17 @@ export class EntryEntity {
   @Column({ length: 80 })
   category: string;
 
-  @Column({ nullable: true, length: 240 })
-  description?: string;
-
-  @Column({ type: 'date' })
-  date: string;
+  @Column({ name: 'due_day', type: 'int' })
+  dueDay: number;
 
   @Column({ nullable: true, length: 80 })
   account?: string;
+
+  @Column({ nullable: true, length: 240 })
+  notes?: string;
+
+  @Column({ default: true })
+  active: boolean;
 
   @Column({ name: 'split_with', nullable: true, length: 120 })
   splitWith?: string;
@@ -63,8 +56,8 @@ export class EntryEntity {
   })
   splitAmount?: string;
 
-  @Column({ name: 'split_status', type: 'varchar', length: 20, nullable: true })
-  splitStatus?: SplitStatus;
+  @Column({ name: 'paid_months', type: 'simple-json', default: '[]' })
+  paidMonths: string[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

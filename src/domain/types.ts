@@ -1,5 +1,7 @@
 export type EntryType = 'expense' | 'income' | 'investment';
 export type InvestmentAction = 'deposit' | 'withdrawal';
+export type SplitStatus = 'pending' | 'paid';
+export type DebtDirection = 'i_owe' | 'owed_to_me';
 
 export interface PublicUser {
   id: string;
@@ -24,6 +26,35 @@ export interface Entry {
   description?: string;
   date: string;
   account?: string;
+  splitWith?: string;
+  splitAmount?: number;
+  splitStatus?: SplitStatus;
+  createdAt: number;
+}
+
+export interface Debt {
+  id: string;
+  direction: DebtDirection;
+  person: string;
+  amount: number;
+  paidAmount: number;
+  description?: string;
+  dueDate?: string;
+  createdAt: number;
+}
+
+export interface RecurringBill {
+  id: string;
+  title: string;
+  amount: number;
+  category: string;
+  dueDay: number;
+  account?: string;
+  notes?: string;
+  active: boolean;
+  splitWith?: string;
+  splitAmount?: number;
+  paidMonths: string[];
   createdAt: number;
 }
 
