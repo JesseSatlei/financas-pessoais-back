@@ -48,7 +48,7 @@ export class AuthService {
       name: cleanName,
       email: cleanEmail,
       passwordHash: await bcrypt.hash(password, 10),
-      approved: false,
+      approved: true,
       role: 'user',
     });
 

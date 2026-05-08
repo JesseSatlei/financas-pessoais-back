@@ -1,7 +1,7 @@
 import type { CategoriesByType } from './types';
 
 export const PIX_KEY = '460.038.778-39';
-export const SUBSCRIPTION_AMOUNT = 25;
+export const SUBSCRIPTION_AMOUNT = 90;
 
 export const DEFAULT_CATEGORIES: CategoriesByType = {
   expense: [

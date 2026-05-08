@@ -17,4 +17,12 @@ export class AdminController {
   setApproval(@Param('id') id: string, @Body() body: { approved?: boolean }) {
     return this.admin.setApproval(id, Boolean(body.approved));
   }
+
+  @Patch('users/:id/subscription')
+  setSubscription(
+    @Param('id') id: string,
+    @Body() body: { paid?: boolean },
+  ) {
+    return this.admin.setSubscriptionPaid(id, Boolean(body.paid));
+  }
 }

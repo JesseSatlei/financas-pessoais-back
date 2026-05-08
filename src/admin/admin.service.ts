@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
+import { PIX_KEY, SUBSCRIPTION_AMOUNT } from '../domain/constants';
+import { SubscriptionEntity } from '../subscription/subscription.entity';
 import { UserEntity } from '../users/user.entity';
 
 @Injectable()
@@ -12,6 +14,8 @@ export class AdminService implements OnModuleInit {
   constructor(
     @InjectRepository(UserEntity)
     private readonly users: Repository<UserEntity>,
+    @InjectRepository(SubscriptionEntity)
+    private readonly subscriptions: Repository<SubscriptionEntity>,
     private readonly config: ConfigService,
   ) {}
 
@@ -69,19 +73,31 @@ export class AdminService implements OnModuleInit {
     }
   }
 
-  listUsers() {
-    return this.users.find({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        approved: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+  async listUsers() {
+    const users = await this.users.find({
+      relations: { subscription: true },
       order: { createdAt: 'DESC' },
     });
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      approved: user.approved,
+      role: user.role,
+      createdAt: user.createdAt.getTime(),
+      subscription: user.subscription
+        ? {
+            status: this.effectiveSubscriptionStatus(user.subscription),
+            amount: Number(user.subscription.amount),
+            declaredPaidAt: user.subscription.declaredPaidAt?.getTime(),
+            activatedAt: user.subscription.activatedAt?.getTime(),
+            nextBillingAt: user.subscription.nextBillingAt?.getTime(),
+          }
+        : {
+            status: 'none',
+            amount: SUBSCRIPTION_AMOUNT,
+          },
+    }));
   }
 
   async setApproval(userId: string, approved: boolean) {
@@ -89,5 +105,51 @@ export class AdminService implements OnModuleInit {
     if (!user) return null;
     user.approved = approved;
     return this.users.save(user);
+  }
+
+  async setSubscriptionPaid(userId: string, paid: boolean) {
+    const user = await this.users.findOne({ where: { id: userId } });
+    if (!user) return null;
+
+    const existing = await this.subscriptions.findOne({ where: { userId } });
+    const subscription =
+      existing ??
+      this.subscriptions.create({
+        userId,
+        amount: SUBSCRIPTION_AMOUNT.toFixed(2),
+        pixKey: PIX_KEY,
+      });
+
+    subscription.amount = SUBSCRIPTION_AMOUNT.toFixed(2);
+    subscription.pixKey = PIX_KEY;
+
+    if (paid) {
+      const now = new Date();
+      subscription.status = 'active';
+      subscription.declaredPaidAt = subscription.declaredPaidAt ?? now;
+      subscription.activatedAt = now;
+      subscription.nextBillingAt = new Date(
+        now.getTime() + 30 * 24 * 60 * 60 * 1000,
+      );
+    } else {
+      subscription.status = 'pending';
+      subscription.nextBillingAt = undefined;
+    }
+
+    await this.subscriptions.save(subscription);
+    return this.listUsers().then((users) =>
+      users.find((item) => item.id === userId),
+    );
+  }
+
+  private effectiveSubscriptionStatus(subscription: SubscriptionEntity) {
+    if (
+      subscription.status === 'active' &&
+      subscription.nextBillingAt &&
+      subscription.nextBillingAt.getTime() <= Date.now()
+    ) {
+      return 'pending';
+    }
+    return subscription.status;
   }
 }
