@@ -36,10 +36,8 @@ export class RecurringBillsService {
       account: input.account?.trim() || undefined,
       notes: input.notes?.trim() || undefined,
       active: input.active ?? true,
+      variableAmount: input.variableAmount ?? false,
       splitWith: input.splitWith?.trim() || undefined,
-      splitAmount: input.splitAmount
-        ? Number(input.splitAmount).toFixed(2)
-        : undefined,
       paidMonths: input.paidMonths ?? [],
     });
     return this.toPublicBill(await this.bills.save(bill));
@@ -61,10 +59,8 @@ export class RecurringBillsService {
     bill.account = input.account?.trim() || undefined;
     bill.notes = input.notes?.trim() || undefined;
     bill.active = input.active ?? true;
+    bill.variableAmount = input.variableAmount ?? false;
     bill.splitWith = input.splitWith?.trim() || undefined;
-    bill.splitAmount = input.splitAmount
-      ? Number(input.splitAmount).toFixed(2)
-      : undefined;
     bill.paidMonths = input.paidMonths ?? [];
 
     return this.toPublicBill(await this.bills.save(bill));
@@ -111,15 +107,6 @@ export class RecurringBillsService {
     ) {
       throw new BadRequestException('Dia de vencimento invalido');
     }
-    if (input.splitWith?.trim()) {
-      if (
-        !Number.isFinite(Number(input.splitAmount)) ||
-        Number(input.splitAmount) <= 0 ||
-        Number(input.splitAmount) > Number(input.amount)
-      ) {
-        throw new BadRequestException('Valor da divisao invalido');
-      }
-    }
     if (!Array.isArray(input.paidMonths)) {
       throw new BadRequestException('Meses pagos invalidos');
     }
@@ -135,8 +122,8 @@ export class RecurringBillsService {
       account: bill.account,
       notes: bill.notes,
       active: bill.active,
+      variableAmount: bill.variableAmount ?? false,
       splitWith: bill.splitWith,
-      splitAmount: bill.splitAmount ? Number(bill.splitAmount) : undefined,
       paidMonths: bill.paidMonths ?? [],
       createdAt: bill.createdAt.getTime(),
     };

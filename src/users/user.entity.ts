@@ -10,6 +10,7 @@ import {
 import { CategoryEntity } from '../categories/category.entity';
 import { DebtEntity } from '../debts/debt.entity';
 import { EntryEntity } from '../entries/entry.entity';
+import { PersonEntity } from '../people/person.entity';
 import { RecurringBillEntity } from '../recurring-bills/recurring-bill.entity';
 import { SubscriptionEntity } from '../subscription/subscription.entity';
 
@@ -52,6 +53,9 @@ export class UserEntity {
 
   @OneToMany(() => RecurringBillEntity, (bill) => bill.user)
   recurringBills: RecurringBillEntity[];
+
+  @OneToMany(() => PersonEntity, (person) => person.user)
+  people: PersonEntity[];
 
   @OneToOne(() => SubscriptionEntity, (subscription) => subscription.user)
   subscription?: SubscriptionEntity;

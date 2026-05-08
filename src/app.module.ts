@@ -12,6 +12,9 @@ import { DebtsService } from './debts/debts.service';
 import { EntryEntity } from './entries/entry.entity';
 import { EntriesController } from './entries/entries.controller';
 import { EntriesService } from './entries/entries.service';
+import { PeopleController } from './people/people.controller';
+import { PersonEntity } from './people/person.entity';
+import { PeopleService } from './people/people.service';
 import { RecurringBillEntity } from './recurring-bills/recurring-bill.entity';
 import { RecurringBillsController } from './recurring-bills/recurring-bills.controller';
 import { RecurringBillsService } from './recurring-bills/recurring-bills.service';
@@ -44,6 +47,7 @@ import { AuthModule } from './auth/auth.module';
           EntryEntity,
           DebtEntity,
           RecurringBillEntity,
+          PersonEntity,
           SubscriptionEntity,
         ];
 
@@ -76,6 +80,7 @@ import { AuthModule } from './auth/auth.module';
       EntryEntity,
       DebtEntity,
       RecurringBillEntity,
+      PersonEntity,
       SubscriptionEntity,
     ]),
   ],
@@ -85,6 +90,7 @@ import { AuthModule } from './auth/auth.module';
     EntriesController,
     DebtsController,
     RecurringBillsController,
+    PeopleController,
     SubscriptionController,
   ],
   providers: [
@@ -93,6 +99,7 @@ import { AuthModule } from './auth/auth.module';
     EntriesService,
     DebtsService,
     RecurringBillsService,
+    PeopleService,
     SubscriptionService,
   ],
 })

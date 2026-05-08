@@ -44,17 +44,11 @@ export class RecurringBillEntity {
   @Column({ default: true })
   active: boolean;
 
+  @Column({ name: 'variable_amount', default: false })
+  variableAmount: boolean;
+
   @Column({ name: 'split_with', nullable: true, length: 120 })
   splitWith?: string;
-
-  @Column({
-    name: 'split_amount',
-    type: 'decimal',
-    precision: 14,
-    scale: 2,
-    nullable: true,
-  })
-  splitAmount?: string;
 
   @Column({ name: 'paid_months', type: 'simple-json', default: '[]' })
   paidMonths: string[];

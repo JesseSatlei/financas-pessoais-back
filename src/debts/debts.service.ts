@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { Debt } from '../domain/types';
+import type { Debt, DebtStatus } from '../domain/types';
 import { DebtEntity } from './debt.entity';
 
 type DebtInput = Omit<Debt, 'id' | 'createdAt'>;
@@ -33,8 +33,10 @@ export class DebtsService {
       person: input.person.trim(),
       amount: Number(input.amount).toFixed(2),
       paidAmount: Number(input.paidAmount ?? 0).toFixed(2),
+      status: input.status ?? this.statusFromPaidAmount(input),
       description: input.description?.trim() || undefined,
       dueDate: input.dueDate || undefined,
+      splitWith: input.splitWith?.trim() || undefined,
     });
     return this.toPublicDebt(await this.debts.save(debt));
   }
@@ -48,8 +50,10 @@ export class DebtsService {
     debt.person = input.person.trim();
     debt.amount = Number(input.amount).toFixed(2);
     debt.paidAmount = Number(input.paidAmount ?? 0).toFixed(2);
+    debt.status = input.status ?? this.statusFromPaidAmount(input);
     debt.description = input.description?.trim() || undefined;
     debt.dueDate = input.dueDate || undefined;
+    debt.splitWith = input.splitWith?.trim() || undefined;
 
     return this.toPublicDebt(await this.debts.save(debt));
   }
@@ -65,6 +69,12 @@ export class DebtsService {
       throw new BadRequestException('Tipo de divida invalido');
     }
     if (!input.person?.trim()) throw new BadRequestException('Pessoa invalida');
+    if (
+      input.status &&
+      !['not_started', 'in_progress', 'paid'].includes(input.status)
+    ) {
+      throw new BadRequestException('Status da divida invalido');
+    }
     if (!Number.isFinite(Number(input.amount)) || Number(input.amount) <= 0) {
       throw new BadRequestException('Valor invalido');
     }
@@ -80,15 +90,30 @@ export class DebtsService {
     }
   }
 
+  private statusFromPaidAmount(input: Pick<DebtInput, 'amount' | 'paidAmount'>): DebtStatus {
+    const paidAmount = Number(input.paidAmount ?? 0);
+    const amount = Number(input.amount);
+    if (paidAmount >= amount) return 'paid';
+    if (paidAmount > 0) return 'in_progress';
+    return 'not_started';
+  }
+
   private toPublicDebt(debt: DebtEntity): Debt {
+    const status =
+      debt.status ?? this.statusFromPaidAmount({
+        amount: Number(debt.amount),
+        paidAmount: Number(debt.paidAmount),
+      });
     return {
       id: debt.id,
       direction: debt.direction,
       person: debt.person,
       amount: Number(debt.amount),
       paidAmount: Number(debt.paidAmount),
+      status,
       description: debt.description,
       dueDate: debt.dueDate,
+      splitWith: debt.splitWith,
       createdAt: debt.createdAt.getTime(),
     };
   }

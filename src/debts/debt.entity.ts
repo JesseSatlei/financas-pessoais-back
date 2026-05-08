@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { DebtDirection } from '../domain/types';
+import type { DebtDirection, DebtStatus } from '../domain/types';
 import { UserEntity } from '../users/user.entity';
 
 @Entity('debts')
@@ -40,11 +40,21 @@ export class DebtEntity {
   })
   paidAmount: string;
 
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'not_started',
+  })
+  status: DebtStatus;
+
   @Column({ nullable: true, length: 240 })
   description?: string;
 
   @Column({ name: 'due_date', type: 'date', nullable: true })
   dueDate?: string;
+
+  @Column({ name: 'split_with', nullable: true, length: 120 })
+  splitWith?: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
